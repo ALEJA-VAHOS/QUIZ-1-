@@ -1,7 +1,7 @@
 ---
 title: "Quiz Simulación estadística"
 author: "María Alejandra Vahos Blanco"
-format: html
+format: docx
 editor: visual
 ---
 
@@ -44,6 +44,8 @@ points(aleatorios[1:7], funcion[1:7], col = "red", pch = 19)
 abline(h = funcion[1:7], col = "green", lty = 3, lwd = 2)
 ```
 
+El método de Monte Carlo para calcular integrales consiste en obtener el promedio de áreas que se calculan multiplicando la base, es decir, $(b-a)$, por la altura, que estará dada por un número aleatorio evaluado en la función.
+
 ```{r, message=FALSE, warning=FALSE}
 # Establecer la semilla para reproducibilidad
 set.seed(1317)
@@ -61,6 +63,8 @@ integrand <- function(aleatorios) (cos(50 *aleatorios) + sin(20 * aleatorios))^2
 real <- integrate(integrand, lower = 0, upper = 1)$value;real
 media
 ```
+
+El valor de la integral que nos dio mediante las 5000 simulaciones es muy cercano al valor al realizar la integral, por lo que se puede decir que la estimacion por el método montecarlo es muy precisa.
 
 Realizar una grafica que muestre la evolución de las estimaciones, junto con el error estándar de cada una de ellas.
 
@@ -114,6 +118,8 @@ legend("topright", legend = c("Estimación", "Error estándar", "Valor real"),
        col = c("blue", "red", "green"), lty = c(1, 2, 3), lwd = 2)
 ```
 
+La evolucion de las estimaciones es muy rapida, relativamente converge rápido a nuestro valor real, con 200 simulaciones ya se observa un valor cercano al de nuestra integral.
+
 2\. Para el desarrollo de este ejercicio tenga en cuenta lo siguiente: Si $X_1, X_2, ..., X_n$ es una muestra aleatoria de una distribución normal, $n \geq 2$ y $S^2$ es la varianza muestral, entonces
 
 $$
@@ -143,6 +149,8 @@ proporcion <- contador / 1000
 cat("La proporción de veces que la varianza queda contenida es:", proporcion, "\n")
 
 ```
+
+Con un $\alpha = 0.05$, podemos decir que la proporción de varianzas simuladas que contienen el parámetro $\sigma = 4$ es aproximadamente 95.7%. Esto es coherente con un nivel de confianza del 95% y refleja la probabilidad de que el intervalo de confianza construido para la varianza muestral contenga el valor verdadero de la varianza poblacional en aproximadamente el 95% de las muestras.
 
 3\. Para la simulación del punto 2, se partió del supuesto que la variable se distribuye normal, ¿que sucede si la población muestreada no es normal? Por ejemplo, suponer que la población muestreada es $\chi^{2}(2)$ y que tiene una varianza de 4. Repetir la simulación, reemplazando las N (0, 4) muestras con $\chi^{2}(2)$. muestras.
 
