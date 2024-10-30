@@ -1,0 +1,349 @@
+---
+title: "Quiz Simulación estadística"
+author: "María Alejandra Vahos Blanco"
+format: html
+editor: visual
+---
+
+## QUUIZ
+
+1.  sUtilizar el método de integración Monte Carlo para evaluar la integral
+
+$\int_0^{1}[cos(50x)+sen(20x)]^{2}$
+
+#### Método Monte-Carlo
+
+$$
+\int_{a}^{b}f(x) dx = \frac{b-a}{m} \sum_{i=1}^{m}f(x_i)
+$$
+
+En el ejercicio:
+
+$\int_0^{1}[cos(50x)+sen(20x)]^{2} = \frac{1-0}{m}*\sum_{i=1}^{m}[cos(50x)+sen(20x)]^{2}$
+
+$m= 10000$
+
+$x\sim U(0,1)$
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+# Graficar la función utilizando y 10 simulaciones
+curve((cos(50 * x) + sin(20 * x))^2, from = 0, to = 1,
+      col = "blue", lwd = 2, ylab = "y",
+      main = "(cos(50 * x) + sin(20 * x))^2")#se cea la grafica de la funcion a integrar 
+
+# Establecer la semilla para reproducibilidad
+set.seed(1317)
+m <- 5000  # Cantidad de números aleatorios que generaremos
+aleatorios <- runif(m)  # Generamos los números aleatorios
+
+# escribimos la función que deseamos integrar
+funcion <- (cos(50 * aleatorios) + sin(20 * aleatorios))^2
+
+# Graficar los primeros 7 valores de la función calculada en aleatorios de una uniforme(0,1)
+points(aleatorios[1:7], funcion[1:7], col = "red", pch = 19)
+abline(h = funcion[1:7], col = "green", lty = 3, lwd = 2)
+```
+
+```{r, message=FALSE, warning=FALSE}
+# Establecer la semilla para reproducibilidad
+set.seed(1317)
+m <- 5000  # Cantidad de números aleatorios que generaremos
+aleatorios <- runif(m)  # Generamos los números aleatorios
+
+# escribimos la función que deseamos integrar
+funcion <- (cos(50 * aleatorios) + sin(20 * aleatorios))^2
+#aplicamos el método montecarlo 
+theta <- (1-0)*funcion/m
+media <- sum(theta)
+
+#calculamos el valor real de la integral para compararlo
+integrand <- function(aleatorios) (cos(50 *aleatorios) + sin(20 * aleatorios))^2
+real <- integrate(integrand, lower = 0, upper = 1)$value;real
+media
+```
+
+Realizar una grafica que muestre la evolución de las estimaciones, junto con el error estándar de cada una de ellas.
+
+$EE=\frac{\sigma}{\sqrt{m}}$
+
+$\sigma$ = Desviación estándar de las simulaciones
+
+$EE$ = Error estándar
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+# Aplicamos el método Monte Carlo: calculamos la media de la función
+estimaciones <- cumsum(funcion) / (1:m) # Estimaciones acumulativas de la integral
+
+# Aquí, el error estándar se calculará como la desviación estándar acumulada dividida por la raíz cuadrada del número de muestras
+errores <- sqrt(cumsum((funcion - estimaciones)^2)) / (1:m) 
+
+# Gráfico de la evolución de las estimaciones junto con el error estándar
+plot(1:m, estimaciones, type = "l", col = "blue", lwd = 2,
+     xlab = "Número de muestras", ylab = "Estimación de la Integral",
+     main = "Evolución de la estimación Monte Carlo") #creamos la gráfica de las estimaciones
+lines(1:m, estimaciones + errores, col = "red", lty = 2) #creamos la gráfica de los errores estándar por encima
+lines(1:m, estimaciones - errores, col = "red", lty = 2)#creamos la gráfica de los errores estándar por debajo
+abline(h = real, col = "green", lty = 3, lwd = 2) # ponemos el valor real de la integral
+
+legend("topright", legend = c("Estimación", "Error estándar", "Valor real"),
+       col = c("blue", "red", "green"), lty = c(1, 2, 3), lwd = 2) # agregamos 
+
+```
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+par(mfrow = c(1, 2))
+
+# Gráfico con zoom
+plot(1:m, estimaciones, type = "l", col = "blue", lwd = 2,
+     xlab = "", ylab = "Estimación de la Integral",
+     main = "", 
+     xlim = c(0, 1000), ylim = c(0.5, 2))
+lines(1:m, estimaciones + errores, col = "red", lty = 2)
+lines(1:m, estimaciones - errores, col = "red", lty = 2)
+abline(h = real, col = "green", lty = 3, lwd = 2)
+
+# Gráfico con zoom
+plot(1:m, estimaciones, type = "l", col = "blue", lwd = 2,
+     xlab = "Número de muestras", ylab = "",
+     main = "", 
+     xlim = c(4000, 5000), ylim = c(0.8, 1.2))
+lines(1:m, estimaciones + errores, col = "red", lty = 2)
+lines(1:m, estimaciones - errores, col = "red", lty = 2)
+abline(h = real, col = "green", lty = 3, lwd = 2)
+legend("topright", legend = c("Estimación", "Error estándar", "Valor real"),
+       col = c("blue", "red", "green"), lty = c(1, 2, 3), lwd = 2)
+```
+
+2\. Para el desarrollo de este ejercicio tenga en cuenta lo siguiente: Si $X_1, X_2, ..., X_n$ es una muestra aleatoria de una distribución normal, $n \geq 2$ y $S^2$ es la varianza muestral, entonces
+
+$$
+V=\frac{(n-1)S^2}{\sigma^2}\sim \chi^{2}(n-1)
+$$
+
+Un intervalo de confianza de una sola vía $100(1 − \alpha)%$ está dado por $(0,(n − 1)S 2/ \chi^{2}_\alpha)$ donde $\chi^{2}_\alpha$ es el $\alpha$ -cuantil de la distribución $\chi^{2}(n-1)$.
+
+Utilizar el método Monte Carlo para estimar el nivel de confianza en la construcción de un intervalo de confianza de una sola vía para la varianza, tomando como referencia una muestra aleatoria de tamaño $n = 20$ de una distribución normal $N (0, \sigma^{2} = 4)$. Para el procedimiento realice $m = 1000$ replicas y tome $\alpha = 0.05$.
+
+Nota: Recuerde que el objetivo final es establecer la proporción de veces que la varianza queda contenida en los intervalos construidos.
+
+```{r}
+set.seed(1713)
+contador <- 0
+for (i in 1:1000) {
+  numeros <- rnorm(n = 20, mean = 0, sd = 2) #creamos los datos que se distribuyen normal 
+  s2 <- var(numeros)# sacamos la varianza d elos datos
+  limite <- (20-1) * s2 / qchisq(0.05, df = 20-1) #escribimos el limite del intervalo
+  if (4 < limite) {
+    contador <- contador + 1 #guardamos las veces que 4 se encuentra en el intervalo
+  }
+}
+
+# Calcular y mostrar la proporción
+proporcion <- contador / 1000
+cat("La proporción de veces que la varianza queda contenida es:", proporcion, "\n")
+
+```
+
+3\. Para la simulación del punto 2, se partió del supuesto que la variable se distribuye normal, ¿que sucede si la población muestreada no es normal? Por ejemplo, suponer que la población muestreada es $\chi^{2}(2)$ y que tiene una varianza de 4. Repetir la simulación, reemplazando las N (0, 4) muestras con $\chi^{2}(2)$. muestras.
+
+```{r}
+set.seed(1317)
+contador2 <- 0
+for (i in 1:1000) {
+  numeros <- rchisq(n = 20, df = 2) # generamos los datos chi cuadrado con 2 grados de libertad
+  s2 <- var(numeros) #generamos la varianza de los datos generados 
+  limite <- (20-1)*s2/qchisq(0.05, df = 20-1) # Calculamos el límite del intervalo 
+  if (4 <= limite) {
+    contador2 <- contador2 + 1 # Guardamos el numero de veces que 4 esta contenido en el intervalo 
+  }
+}
+proporcion2 <- contador2 / 1000
+cat("La proporción de veces que la varianza queda contenida es:", proporcion2, "\n")
+
+```
+
+Si la población muestreada no se comporta de manera normal y se usa el mismo intervalo de confianza que para una que sí se distribuye normalmente, la proporción de valores contenidos por el intervalo no será equivalente a nuestro nivel de confianza deseado. Aunque una distribución $\chi^{2}(2)$ tiene una varianza de 4, la proporción de intervalos que contienen el valor verdadero de la varianza es solo de 77.5%, ya que el intervalo no está considerando que nuestra población proviene de una distribución $\chi^{2}(2)$, que es asimétrica, en lugar de una normal.
+
+4.  Consultar sobre el método denominado Muestreador de Gibbs (Gibbs Sampler), explicar en qué consite, en qué casos se utiliza, cu ́al es el algoritmo general que lo define, presentar un ejemplo de aplicación.
+
+    El muestreador de Gibbs es utilizado para generar muestras de distribuciones complejas, especialmente en estadística bayeciana, donde se quiere realizar estimaciones de los parámetros y es dificil o casi imposible muestrear de dicha distribución.
+
+    En problemas bayesiones es común que la distribución posterior sea compleja, y no tenga una forma análitica sencilla, el muestreador de gibbs se puede ver como una caminata aleatoria, donde se realizan las estimaciones condicionando a la función de los parametros,
+
+Es un método basado en simulación que permite explorar la distribución posterior de los parámetros, incluso cuando la distribución posterior no tiene una forma cerrada conocida, por lo que no se pueden extraer muestras independientes de manera fácil para hacer los métodos de inferencia posterior. Se aplica generarmente en estádistica bayesiana, pero sirve para explorar cualquier distribución probabilistica.
+
+Se por lo general con distribuciones previas semi conjugadas, es decir, la distribucion posterior es desconocida, pero las distribuciones condicionales completas si lo son, tambien se puede implementar con distribuciones condicionales completas desconocidas, pero seria un proceso un poco mas extenso y se puede implementar con el muestreador gibbs pero tambien se le debe agregar paso especificos con algoritmos un poco mas especializados como el metropolis.
+
+#### Algoritmo
+
+1.Iniciación: se selecciona un conjunto inicial de valores para las variables $(x_1^{0}, x_2^{0}, ... , x_k^{0})$
+
+2.  paso iterativo:
+3.  Para cada variable $X_i$, se fija el valor actual de todas las demás variables y se muestrea un nuevo valor para $X_i$ utilizando la distribucion condicional
+
+$$
+p(X_i|X_1,...,X_{i-1}, X_{i+1},...,X_k)
+$$
+
+3.  Repetición: La distribución estacionaria es el punto al que llega la cadena de Markov cuando deja de depender de los valores iniciales, se suelen quemar los primeros datos, ya que estos dependen de los valores iniciales que nosotros ponemos.
+
+## Ejemplo:
+
+La empresa tiene un presupuesto limitado que debe asignar entre los tres departamentos clave:
+
+1.  **Marketing**: Necesita recursos para campañas publicitarias y de promoción.
+
+2.  **Desarrollo de Producto**: Requiere financiamiento para investigación, desarrollo y mejora de productos.
+
+3.  **Atención al Cliente**: Gestiona el soporte a los clientes y la satisfacción post-venta.
+
+La asignación debe reflejar las prioridades estratégicas de la empresa, donde:
+
+-   **Marketing** es visto como un área crucial para el crecimiento, por lo que se espera que reciba una mayor proporción del presupuesto.
+
+-   **Desarrollo de Producto** también es importante, pero quizás no tanto como Marketing.
+
+-   **Atención al Cliente** es una prioridad más baja este año, por lo que su asignación es la menor.
+
+Para capturar estas creencias iniciales, los parámetros de la **distribución de Dirichlet** se han configurado como:
+
+-   $\alpha_1=4$ para Marketing (creencia de que recibirá una proporción mayor del presupuesto),
+
+-   $\alpha_2=3$ para Desarrollo de Producto (recibirá una proporción media),
+
+-   $\alpha_3 = 1$ para Atención al Cliente (probabilidad de recibir una menor proporción del presupuesto).
+
+### Objetivo de la simulación:
+
+El objetivo de la simulación es generar múltiples escenarios posibles de cómo podrían distribuirse los recursos entre estos departamentos, respetando las creencias iniciales de la empresa. Estos escenarios te ayudarán a explorar la variabilidad en la asignación de presupuesto y a tomar una decisión más informada sobre cómo distribuirlo de forma efectiva.
+
+```{r, warning=FALSE}
+# Parámetros de la distribución de Dirichlet
+alpha <- c(4, 3, 1)  # α1 (Marketing), α2 (Desarrollo de Producto), α3 (Atención al Cliente)
+n_samples <- 10000    # Número de muestras
+
+# Inicializamos las proporciones para cada departamento
+marketing <- numeric(n_samples)
+desarrollo <- numeric(n_samples)
+atencion <- numeric(n_samples)
+
+# Condiciones iniciales (empezamos con valores arbitrarios para las proporciones)
+marketing[1] <- 0.3
+desarrollo[1] <- 0.4
+atencion[1] <- 1 - marketing[1] - desarrollo[1]
+
+# Muestrador de Gibbs
+for (i in 2:n_samples) {
+  
+  # Muestreamos la proporción para Marketing dado Desarrollo y Atención al Cliente
+  marketing[i] <- rbeta(1, alpha[1], alpha[2] + alpha[3]) * (1 - desarrollo[i-1])
+  
+  # Muestreamos la proporción para Desarrollo de Producto dado Marketing y Atención
+  desarrollo[i] <- rbeta(1, alpha[2], alpha[1] + alpha[3]) * (1 - marketing[i])
+  
+  # Calculamos la proporción de Atención al Cliente basado en la restricción total (suma 1)
+  atencion[i] <- 1 - marketing[i] - desarrollo[i]
+}
+
+# Ahora tenemos las muestras para las proporciones de presupuesto en cada departamento
+asignacion_presupuesto <- data.frame(marketing = marketing, desarrollo = desarrollo, atencion = atencion)
+
+# Veamos un resumen de los resultados
+summary(asignacion_presupuesto)
+
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Graficamos las muestras para visualizar cómo se distribuyen los recursos
+library(ggtern)
+ggtern(data = asignacion_presupuesto, aes(marketing, desarrollo, atencion)) +
+  geom_point(alpha = 0.2) +
+  theme_bw() +
+  labs(title = "Asignación Simulada de Presupuesto entre Departamentos")
+```
+
+-   La **variabilidad** en Marketing es considerable, con un rango de 0.04075 a 0.88126. Esto podría indicar que, dependiendo de las condiciones, la empresa podría estar distribuyendo el presupuesto de manera muy desigual, lo que es un aspecto a considerar para mantener una asignación equilibrada.
+
+-   En el caso de Desarrollo de Producto, el **mínimo** es notablemente bajo, lo que sugiere que podría haber años donde este departamento no reciba suficiente apoyo. Esto es preocupante si el desarrollo de productos es crucial para el crecimiento de la empresa
+
+5.  Generar una distribuci ́on normal bivariada con vector de medias (μ1, μ2), varianzas $\sigma^{2}_1, \sigma^{2}_2$ y correlación $\rho$ usando el muestreadsor de Gibbs.
+
+La distribución normal bivariada denotada como $(x, y ) \sim N((\mu x, \mu y), \Sigma)$, tiene una matriz de covarianza $\Sigma$ dada por:
+
+$$
+\Sigma = \begin{pmatrix}
+\sigma_X^2 & \rho \sigma_X \sigma_Y \\
+\rho \sigma_X \sigma_Y & \sigma_Y^2
+\end{pmatrix}
+$$
+
+### Distribuciones condicionales:
+
+-   $X|Y =y\sim N (\mu X + \rho \frac{\sigma X}{\sigma Y}(y-\mu Y), \sigma^{2}_X(1-\rho^{2})$
+
+-   $Y|X = x\sim N (\mu Y + \rho \frac{\sigma Y}{\sigma X}(x-\mu X), \sigma^{2}_Y(1-\rho^{2})$
+
+## Ejemplo:
+
+Supongamos que
+
+$\mu X = 0, \mu Y =0$
+
+$\sigma_X =1, \sigma_Y = 1$
+
+$\rho =0.71$
+
+```{r}
+set.seed(1317)
+
+# Parámetros de la distribución normal bivariada
+mu1 <- 0  # Media de X
+mu2 <- 0  # Media de Y
+sigma1 <- 1  # Desviación estándar de X
+sigma2 <- 1  # Desviación estándar de Y
+rho <- 0.71  # Correlación
+
+# Inicialización de vectores de muestras
+X <- numeric(5000)
+Y <- numeric(5000)
+
+# Valores iniciales
+X[1] <- 0
+Y[1] <- 0
+
+# Iteración del Muestreador de Gibbs
+for (i in 2:5000) {
+  # Muestreo de X dado Y[i-1]
+  X[i] <- rnorm(1, mean = mu1 + rho * (sigma1 / sigma2) * (Y[i-1] - mu2), 
+                sd = sigma1 * sqrt(1 - rho^2))
+  
+  # Muestreo de Y dado X[i]
+  Y[i] <- rnorm(1, mean = mu2 + rho * (sigma2 / sigma1) * (X[i] - mu1), 
+                sd = sigma2 * sqrt(1 - rho^2))
+}
+
+
+```
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+# Calcular y mostrar estadísticas
+cat("Media de X:", mean(X), "\n")
+cat("Media de Y:", mean(Y), "\n")
+cat("Varianza de X:", var(X), "\n")
+cat("Varianza de Y:", var(Y), "\n")
+cat("Correlación entre X e Y:", cor(X, Y), "\n")
+
+
+```
+
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+# Visualización gráfica: gráfico de dispersión
+plot(X, Y, main = "Gráfico de Dispersión de Muestras Bivariadas", 
+     xlab = "X", ylab = "Y", pch = 19, col = rgb(0.2, 0.5, 0.8, 0.5))
+
+# Agregar línea horizontal en la media de Y
+abline(h = mean(Y), col = "red", lty = 3, lwd = 2)
+
+# Agregar línea vertical en la media de X
+abline(v = mean(X), col = "red", lty = 3, lwd = 2)
+```
